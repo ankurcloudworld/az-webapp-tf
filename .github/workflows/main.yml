@@ -71,7 +71,7 @@ jobs:
               resource_group_name  = "${{ secrets.STATE_RESOURCE_GROUP_NAME }}"
               storage_account_name = "${{ secrets.STATE_STORAGE_ACCOUNT_NAME }}"
               container_name       = "${{ secrets.STATE_CONTAINER_NAME }}"
-              key                  = "${REPO_NAME}/webapp-${WEBAPP_NAME}-${{ github.event.inputs.environment }}.tfstate"
+              key                  = "${REPO_NAME}/${WEBAPP_NAME}-${{ github.event.inputs.environment }}.tfstate"
             }
           }
           EOL
