@@ -22,7 +22,6 @@ resource "azurerm_linux_web_app" "app_service" {
     ftps_state          = "FtpsOnly"
     http2_enabled       = true
     use_32_bit_worker   = false
-    linux_fx_version    = "NODE|20"
   }
 
    app_settings = {
