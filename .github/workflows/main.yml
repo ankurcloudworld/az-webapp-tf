@@ -81,7 +81,7 @@ jobs:
           echo "## Creating terraform.tfvars"
           ENV_PATH="./environments"
           WEBAPP_NAME="${{ github.event.inputs.webapp_name }}"
-          if [ -z "$KEY_VAULT_NAME" ]; then
+          if [ -z "$WEBAPP_NAME" ]; then
             WEBAPP_NAME="sample-app"  # Fallback value if not provided
           fi
           cat > ${ENV_PATH}/terraform.tfvars << EOL
