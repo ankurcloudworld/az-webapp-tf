@@ -47,6 +47,12 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: '1.4.0'
+      
+      - name: Set Working Directory
+        run: |
+          echo "## Setting Working Directory"
+          ENV_PATH="./environments"
+          cd "$ENV_PATH" || exit 1
 
       - name: Create backend.tf
         run: |
@@ -80,17 +86,34 @@ jobs:
           webapp_name      = "${WEBAPP_NAME}"
           EOL
 
+      - name: Initialize Terraform
+        run: |
+          echo "## Initializing Terraform"
+          ENV_PATH="./environments"
+          cd "$ENV_PATH" || exit 1
+          terraform init || { echo "Terraform init failed"; exit 1; }
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+      
       - name: Plan Terraform Changes
         run: |
-          echo "## Planning Terraform Changes for Web App ${WEBAPP_NAME}"
+          echo "## Planning Terraform Changes"
           ENV_PATH="./environments"
           cd "$ENV_PATH" || exit 1
           terraform plan -var-file=terraform.tfvars -out=tfplan || { echo "Terraform plan failed"; exit 1; }
+          echo "## Terraform Plan Completed"
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
-      - name: Apply Terraform Changes
-        if: ${{ github.event.inputs.proceed_apply == 'true' }}
-        run: |
-          echo "## Applying Terraform Changes for Web App ${WEBAPP_NAME}"
-          ENV_PATH="./environments"
-          cd "$ENV_PATH" || exit 1
-          terraform apply -auto-approve tfplan || { echo "Terraform apply failed"; exit 1; }
+      - name: Upload Terraform Plan as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-artifacts
+          path: ./environments
