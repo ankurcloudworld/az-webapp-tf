@@ -14,13 +14,20 @@ variable "location" {
   default     = "East US"
 }
 
-variable "app_service_plan_sku" {
-  description = "The SKU tier for the App Service Plan (e.g., Free, Shared, Basic, Standard)"
+variable "app_service_plan_tier" {
+  description = "The pricing tier for the App Service Plan."
   type        = string
+  default     = "Standard"
 }
 
 variable "app_service_plan_size" {
-  description = "The size of the App Service Plan (e.g., F1, B1, S1)"
+  description = "The size of the App Service Plan."
   type        = string
+  default     = "S1"
 }
 
+variable "app_service_plan_capacity" {
+  description = "The capacity of the App Service Plan."
+  type        = number
+  default     = 1
+}
