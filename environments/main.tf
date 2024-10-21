@@ -9,7 +9,8 @@ module "webapp" {
   resource_group_name = "${var.resource_group_name}-${var.environment_name}"
   location            = var.location
   app_name            = "${var.app_name}-${var.environment_name}"
-  app_service_plan_sku    = var.app_service_plan_sku
-  app_service_plan_size   = var.app_service_plan_size
+  app_service_plan_tier = "Standard"          # Adjust if necessary
+  app_service_plan_size  = "S1"               # Adjust if necessary
+  app_service_plan_capacity = 1                # Adjust if necessary
   depends_on          = [module.resource_group]
 }
