@@ -1,0 +1,96 @@
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select the environment to deploy: (dev, staging, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      webapp_name:
+        description: 'Enter the Web App name to deploy'
+        required: true
+        default: 'my-web-app'
+      proceed_apply:
+        description: 'Would you like to apply the Terraform changes?'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      proceed_destroy:
+        description: 'Would you like to destroy the Web App resources?'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      destroy_confirmation:
+        description: 'Type "yes" to confirm the destroy operation after reviewing the plan'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  init-and-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.4.0'
+
+      - name: Create backend.tf
+        run: |
+          echo "## Creating backend.tf for Web App"
+          ENV_PATH="./environments"
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          WEBAPP_NAME="${{ github.event.inputs.webapp_name }}"
+          cat > ${ENV_PATH}/backend.tf << EOL
+          terraform {
+            backend "azurerm" {
+              resource_group_name  = "${{ secrets.STATE_RESOURCE_GROUP_NAME }}"
+              storage_account_name = "${{ secrets.STATE_STORAGE_ACCOUNT_NAME }}"
+              container_name       = "${{ secrets.STATE_CONTAINER_NAME }}"
+              key                  = "${REPO_NAME}/webapp-${WEBAPP_NAME}-${{ github.event.inputs.environment }}.tfstate"
+            }
+          }
+          EOL
+
+      - name: Create terraform.tfvars
+        run: |
+          echo "## Creating terraform.tfvars"
+          ENV_PATH="./environments"
+          WEBAPP_NAME="${{ github.event.inputs.webapp_name }}"
+          cat > ${ENV_PATH}/terraform.tfvars << EOL
+          client_id        = "${{ secrets.ARM_CLIENT_ID }}"
+          client_secret    = "${{ secrets.ARM_CLIENT_SECRET }}"
+          subscription_id  = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
+          tenant_id        = "${{ secrets.ARM_TENANT_ID }}"
+          object_id        = "${{ secrets.ARM_OBJECT_ID }}"
+          environment_name = "${{ github.event.inputs.environment }}"
+          webapp_name      = "${WEBAPP_NAME}"
+          EOL
+
+      - name: Plan Terraform Changes
+        run: |
+          echo "## Planning Terraform Changes for Web App ${WEBAPP_NAME}"
+          ENV_PATH="./environments"
+          cd "$ENV_PATH" || exit 1
+          terraform plan -var-file=terraform.tfvars -out=tfplan || { echo "Terraform plan failed"; exit 1; }
+
+      - name: Apply Terraform Changes
+        if: ${{ github.event.inputs.proceed_apply == 'true' }}
+        run: |
+          echo "## Applying Terraform Changes for Web App ${WEBAPP_NAME}"
+          ENV_PATH="./environments"
+          cd "$ENV_PATH" || exit 1
+          terraform apply -auto-approve tfplan || { echo "Terraform apply failed"; exit 1; }
