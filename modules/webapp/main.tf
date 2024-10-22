@@ -15,6 +15,7 @@ resource "azurerm_linux_web_app" "app_service" {
   location            = var.location
   resource_group_name = var.resource_group_name
   service_plan_id     = azurerm_app_service_plan.app_service_plan.id  # Corrected reference
+  os_type                 = "linux"
   site_config {
     always_on           = true
     minimum_tls_version = "1.2"
@@ -26,4 +27,5 @@ resource "azurerm_linux_web_app" "app_service" {
     "WEBSITE_NODE_DEFAULT_VERSION" = "20"  # Specify Node.js version here
     # Other app settings (if any)
   }
+
 }
