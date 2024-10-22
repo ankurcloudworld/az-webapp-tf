@@ -22,10 +22,8 @@ resource "azurerm_linux_web_app" "app_service" {
     http2_enabled       = true
     use_32_bit_worker   = false
   }
-  application_stack {
-    # Choose one option, not both. Current recommendation is `WEBSITE_NODE_DEFAULT_VERSION`.
-    # node_version = "20-lts"  # Deprecated approach, consider using this only for legacy reasons
-    WEBSITE_NODE_DEFAULT_VERSION = "20"
+  app_settings = {
+    "WEBSITE_NODE_DEFAULT_VERSION" = "20"  # Specify Node.js version here
+    # Other app settings (if any)
   }
-
 }
