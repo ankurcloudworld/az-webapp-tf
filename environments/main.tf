@@ -12,6 +12,5 @@ module "webapp" {
   app_service_plan_tier = "Standard"          # Adjust if necessary
   app_service_plan_size  = "S1"               # Adjust if necessary
   app_service_plan_capacity = 1                # Adjust if necessary
-  os_type                 = "linux"
   depends_on          = [module.resource_group]
 }
